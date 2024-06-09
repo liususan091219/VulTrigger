@@ -19,6 +19,7 @@ http.socket_timeout = 9999
 
 f = open('./config.json')
 path_data = json.load(f)
+root_dir = "/home/VulTrigger/VulTrigger/"
 
 def get_calls_id(db, func_name):
     query_str = 'getCallsTo("%s")' % func_name
@@ -74,9 +75,9 @@ def get_all_calls_node(db, func_name):
 
 #The function that reads the vulnerability corresponding to each CVE returns the corresponding dictionary
 def get_vulname(software):
-    dst_folder = './data/C-Diffs/' + software #diff
+    dst_folder = root_dir + 'data/C-Diffs/' + software #diff
     # xlsx_path = './' + software + '_data.xlsx'
-    xlsx_path = './all_data.xlsx'
+    xlsx_path = root_dir + 'all_data.xlsx'
     ws = openpyxl.load_workbook(xlsx_path)['Sheet1']
     #ws = openpyxl.load_workbook(xlsx_path)['ffmpeg']
     dic = {}
@@ -100,6 +101,51 @@ def delete_dir(fold):
     shutil.rmtree(fold)
     os.mkdir(fold)
 
+def prepare_for_analysis(path_data):
+     #print("joern is over")
+     os.chdir(path_data["joern"]["joern_exe"])
+     #print(os.access('.joernIndex', os.W_OK))
+     if(os.path.exists('.joernIndex')):
+         os.system('chmod +777 .joernIndex')
+         shutil.rmtree(path_data["joern"]["before_joern"]) #Delete the previous legacy .joernIndex file
+     print('delete .joernIndex')
+     os.system('ls -a')
+     src = path_data["start_folder"] + './gitrepos/' + args[0] + '_git'
+     dst = path_data["joern"]["testCode"]
+     os.chdir(src)
+     os.system('git stash')
+     
+     commands = 'git checkout {0}'.format(hashs)
+     #os.system('git stash')
+     os.system(commands)
+
+     #os.remove(dst)
+     delete_dir(dst) #Delete the files to be parsed from the last joern/testCode
+     
+
+     os.chdir(path_data["neo4j"])
+     os.system("./neo4j stop")
+     os.system("./neo4j status")
+     cnt = 0
+     for root, dirs, files in os.walk(src):
+         for f in files:
+             if(f == 'parse_date.c'):
+                 continue
+             if('.c' in f):
+                 s = os.path.join(root, f)
+                 shutil.copy(s, dst)
+                 cnt += 1
+
+     print(str(cnt) + 'files has been copy.')
+
+     os.chdir(path_data["joern"]["joern_exe"])
+     os.system('./joern testCode')
+     print('joern is over')
+
+     os.system('../neo4j/bin/./neo4j start-no-wait')
+     os.system('sleep 15s')
+
+
 if __name__ == '__main__':
     
     parser = OptionParser()
@@ -108,7 +154,7 @@ if __name__ == '__main__':
         print('Missing parameters! Please add software name.')
     
     #Delete the last generated key variable file and intermediate output file
-    os.chdir('./cv_result')
+    os.chdir(root_dir + 'cv_result')
     os.system('rm *')
     print('delete * in ./cv_result')
     os.chdir(path_data["start_folder"])
@@ -119,7 +165,7 @@ if __name__ == '__main__':
     os.system('python3 cv_extract.py')
     print('get cv_extract.py')
     print(start_dic)
-    dst_folder = './data/C-Diffs/' + args[0]
+    dst_folder = root_dir + 'data/C-Diffs/' + args[0]
     #print(dst_folder)
     #lock = Lock()
     for cve in os.listdir(dst_folder):
@@ -134,49 +180,7 @@ if __name__ == '__main__':
                 continue
             start = start_dic[index]
 
-            
-            #print("joern is over")
-            os.chdir(path_data["joern"]["joern_exe"])
-            #print(os.access('.joernIndex', os.W_OK))
-            if(os.path.exists('.joernIndex')):
-                os.system('chmod +777 .joernIndex')
-                shutil.rmtree(path_data["joern"]["before_joern"]) #Delete the previous legacy .joernIndex file
-            print('delete .joernIndex')
-            os.system('ls -a')
-            src = path_data["start_folder"] + './gitrepos/' + args[0] + '_git'
-            dst = path_data["joern"]["testCode"]
-            os.chdir(src)
-            os.system('git stash')
-            
-            commands = 'git checkout {0}'.format(hashs)
-            #os.system('git stash')
-            os.system(commands)
-
-            #os.remove(dst)
-            delete_dir(dst) #Delete the files to be parsed from the last joern/testCode
-            
-
-            os.chdir(path_data["neo4j"])
-            os.system("./neo4j stop")
-            os.system("./neo4j status")
-            cnt = 0
-            for root, dirs, files in os.walk(src):
-                for f in files:
-                    if(f == 'parse_date.c'):
-                        continue
-                    if('.c' in f):
-                        s = os.path.join(root, f)
-                        shutil.copy(s, dst)
-                        cnt += 1
-
-            print(str(cnt) + 'files has been copy.')
-
-            os.chdir(path_data["joern"]["joern_exe"])
-            os.system('./joern testCode')
-            print('joern is over')
-
-            os.system('../neo4j/bin/./neo4j start-no-wait')
-            os.system('sleep 15s')
+            #prepare_for_analysis(path_data) 
 
             j = JoernSteps()
             j.connectToDatabase()

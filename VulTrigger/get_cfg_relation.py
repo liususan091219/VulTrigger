@@ -32,6 +32,7 @@ def getCtrlRealtionOfCFG(cfg):
     for node in cfg.vs:
         if node['type'] == 'Condition':
             filepath = node['filepath']
+            print("AAAA",filepath)
             location_row = int(node['location'].split(':')[0])
             fin = open(filepath, 'r')
             content = fin.readlines()

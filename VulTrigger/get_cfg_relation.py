@@ -25,14 +25,13 @@ def getSubCFGGraph(startNode, list_node, not_scan_list):
 
     return list_node, not_scan_list
 
-print
 def getCtrlRealtionOfCFG(cfg):
 
     list_ifstmt_nodes = []
-    for node in cfg.vs:
+    all_nodes = [node for node in cfg.vs]
+    for node in all_nodes:
         if node['type'] == 'Condition':
             filepath = node['filepath']
-            print("AAAA",filepath)
             location_row = int(node['location'].split(':')[0])
             fin = open(filepath, 'r')
             content = fin.readlines()
@@ -278,7 +277,11 @@ def main():
     j.connectToDatabase()
     all_func_node = getALLFuncNode(j)
     print(all_func_node)
+    node_count = 0
     for node in all_func_node:
+        if node_count % 100 == 0:
+           print("\n\nnode count" + str(node_count) + "out of " + str(len(all_func_node)) + "\n\n")
+        node_count += 1
         testID = getFuncFile(j, node._id).split('/')[-2]
         path = os.path.join("cfg_db", testID)
 

@@ -5,6 +5,7 @@ from general_op2 import *
 import pickle
 from py2neo.packages.httpstream import http
 http.socket_timeout = 9999
+TIME_OUT = 5
 
 def get_all_use_bydefnode(db, node_id):
     query_str = "g.v(%d).in('USE')" % node_id
@@ -403,11 +404,17 @@ def get_all_calls_node(db, testID):
     list_all_funcID = [node._id for node in getFuncNodeInTestID(db, testID)]
     print "list_all_funcID", list_all_funcID
     print "lenth", len(list_all_funcID)
-    if len(list_all_funcID)>1030:
-        print ">1000"
-        return False
+    #if len(list_all_funcID)>1030:
+    #    print ">1000"
+    #    return False
     list_all_callee_node = []
+    node_count = 0
+    import time
+    t1 = time.time()
     for func_id in list_all_funcID:#allfile in a testID
+        if node_count % 100 == 0:
+           print("\n\nA node count" + str(node_count) + "out of " + str(len(list_all_funcID)) + "," + str(time.time() - t1) + "\n\n")
+        node_count += 1
         list_all_callee_node += getCalleeNode(db, func_id)
 
     if list_all_callee_node == []:
@@ -514,6 +521,10 @@ def get_all_iddecl_node(db, testID):
     else:
         return list_all_decl_node
 
+import signal
+def handler(signum, frame):
+    raise Exception("Function call timed out")
+signal.signal(signal.SIGALRM, handler)
 
 def getCallGraph(db, testID):
     list_all_func_node = getFuncNodeInTestID(db, testID)
@@ -536,7 +547,14 @@ def getCallGraph(db, testID):
     if list_all_callee == False:
         return False
 
+    node_count = 0
+    import time
+    t1 = time.time()
+    
     for func_node in list_all_func_node:
+        if node_count % 100 == 0:
+           print("\n\nB node count" + str(node_count) + "out of " + str(len(list_all_func_node)) + "," + str(time.time() - t1) + "\n\n")
+        node_count += 1
         function_name = func_node.properties['name']
         #print "function_name", function_name
         tag = False
@@ -666,7 +684,16 @@ def getCallGraph(db, testID):
                 #print 'z'
                 for node_id in list_callee_id:
                     #print 1
-                    callee_cfgnode = getCFGNodeByCallee(db, node_id)
+
+                    t2 = time.time()
+                    signal.alarm(10)
+                    try:
+                      callee_cfgnode = getCFGNodeByCallee(db, node_id)     
+                      signal.alarm(0)
+                    except:
+                      print("time out")
+                      signal.alarm(0)
+                      continue
                     #print callee_cfgnode
                     #print 2
 
@@ -682,14 +709,30 @@ def getCallGraph(db, testID):
                     startNode = str(node.properties['functionId'])
                     endNode = str(func_node._id)
                     var = str(node._id)
-                    call_g = addDataEdge(call_g, startNode, endNode, var)#var is callee node id
+                    signal.alarm(TIME_OUT)
+                    t2 = time.time()
+                    try:
+                    	call_g = addDataEdge(call_g, startNode, endNode, var)#var is callee node id
+                        signal.alarm(0)
+                    except:
+                        print("time out")
+                        signal.alarm(0)
+                        continue
             else:
                 #print 'y'
                 for node in list_callee_id:
                     startNode = str(node[0])
                     endNode = str(func_node._id)
                     var = str(node[1])
-                    call_g = addDataEdge(call_g, startNode, endNode, var)#var is callee node id
+                    signal.alarm(TIME_OUT)
+                    t2 = time.time() 
+                    try:
+                    	call_g = addDataEdge(call_g, startNode, endNode, var)#var is callee node id
+                        signal.alarm(0)
+                    except:
+                        print("time out")
+                        signal.alarm(0)
+                        continue
 
 
     return call_g

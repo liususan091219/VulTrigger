@@ -261,7 +261,7 @@ def get_startnode_p1(db, func_name, file_name, loc):
     for file_info in file_info_list:
         count += 1
         file_path = file_info['filepath']
-        #print(file_path)
+        print("AAA", file_path, file_name)
         if file_name in file_path:
             flag = 1
             break
@@ -332,6 +332,7 @@ def get_startnode_p3(db, var, loc, file_name):
 def get_startnode_sche(db, func_name, file_name, loc, var):
     
     startnode_1 = get_startnode_p1(db, func_name, file_name, loc)
+    import pdb; pdb.set_trace()
     if startnode_1 != ['2'] and startnode_1 != ['3']:
         return startnode_1
 
@@ -963,7 +964,7 @@ if __name__ == "__main__":
                         
                         startnode = get_startnode_sche(j, func_name, file_name, line, cv)
                         print("startnode: ")
-                        print(startnode)
+                        print(startnode, func_name, file_name, line, cv)
                         if startnode == ['1'] or startnode == ['2'] or startnode == ['3']:
                             #print(startnode)
                             #print("continue")

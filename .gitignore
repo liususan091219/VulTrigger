@@ -1,1 +1,7 @@
 *.pyc
+VulTrigger/cfg_db/*
+VulTrigger/pdg_db/*
+VulTrigger/results/*
+VulTrigger/slices_logs/*
+VulTrigger/match_sink/*
+VulTrigger/testCode/*

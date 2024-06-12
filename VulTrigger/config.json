@@ -13,6 +13,12 @@
         "step1_output_tmp_txt":"/home/VulTrigger/VulTrigger/cv_result/step1_result.txt",
         "step1_output_tmp_pkl":"/home/VulTrigger/VulTrigger/cv_result/step1_result.pkl"
     },
+    "step2_output":{
+        "record_tmp_slice":"./slices_logs/step2_result_tmp.txt",
+        "startnode_debug_path":"./slices_logs/startnode_debug_path.txt",
+        "sliceres_anatmp":"./slices_logs/sliceres_anatmp.txt",
+        "sliceres_anall":"./slices_logs/sliceres_anall.txt"
+    },
     "all_test_code":{
         "all_diff_path":"/home/VulTrigger/VulTrigger/data/C-Diffs/ffmpeg/",
         "all_new_path":"/home/VulTrigger/VulTrigger/data/C-Non_Vulnerable_Files/ffmpeg/",

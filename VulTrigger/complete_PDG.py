@@ -459,7 +459,14 @@ def main():
     j = JoernSteps()
     j.connectToDatabase()
     all_func_node = getALLFuncNode(j)
+    node_count = 0
+    import time
+    t1 = time.time()
     for node in all_func_node:
+        node_count += 1
+        if node_count % 100 == 0:
+           print("\n\nnode count" + str(node_count) + "out of " + str(len(all_func_node)) + "," + str(time.time() - t1) + "\n\n")
+
         testID = getFuncFile(j, node._id).split('/')[-2]
         path = os.path.join("pdg_db", testID)
 
